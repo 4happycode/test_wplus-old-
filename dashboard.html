@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Air Quality Dashboard</title>
+    <title>Air Quality Dashboard</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        .card {
+            display: none; /* Sembunyikan card secara default */
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px;
+            width: 300px;
+            background-color: #f9f9f9;
+            box-shadow: 0px 0px 5px 2px #ccc;
+        }
+
+        .card-header {
+            font-weight: bold;
+        }
+
+        .card-icon {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+
+        .location-card {
+            display: none;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px;
+            width: 300px;
+            background-color: #f9f9f9;
+            box-shadow: 0px 0px 5px 2px #ccc;
+        }
+    </style>
+    <!-- Tambahkan referensi ke library CSS (misalnya, Bootstrap) di sini -->
+</head>
+<body>
+    <h1>Air Quality Dashboard</h1>
+
+    <!-- Tambahkan tombol untuk mendapatkan data berdasarkan lokasi saat ini -->
+    <div>
+        <h2>Mendapatkan Data Berdasarkan Lokasi Saat Ini</h2>
+        <button id="getCurrentLocationData">Dapatkan Data Lokasi Saat Ini</button>
+        <div id="resultContainer"></div>
+    </div>
+
+    <!-- Card untuk informasi lokasi -->
+    <div class="location-card" id="locationCard">
+        <div class="card-header">
+            <i class="fas fa-map-marker-alt card-icon"></i> Informasi Lokasi
+        </div>
+        <div class="card-body">
+            <p>Kota: <span id="city"></span></p>
+            <p>Negara: <span id="country"></span></p>
+            <p>Negara Bagian: <span id="state"></span></p>
+        </div>
+    </div>
+
+    <!-- Card untuk data polusi -->
+    <div class="card" id="pollutionCard">
+        <div class="card-header">
+            <i class="fas fa-smog card-icon"></i> Data Polusi Udara
+        </div>
+        <div class="card-body">
+            <p>Indeks AQI (US): <span id="aqiValue"></span></p>
+            <p>Parameter Utama (US): <span id="mainParameter"></span></p>
+        </div>
+    </div>
+
+    <!-- Card untuk data cuaca -->
+    <div class="card" id="weatherCard">
+        <div class="card-header">
+            <i class="fas fa-cloud-sun card-icon"></i> Data Cuaca
+        </div>
+        <div class="card-body">
+            <p>Suhu (°C): <span id="temperature"></span></p>
+            <p>Kelembaban (%): <span id="humidity"></span></p>
+            <p>Arah Angin (°): <span id="windDirection"></span></p>
+            <p>Kecepatan Angin (m/s): <span id="windSpeed"></span></p>
+        </div>
+    </div>
+
+
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.4/axios.min.js"></script> -->
+    <script>
+        document.getElementById("getCurrentLocationData").addEventListener("click", function() {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    var latitude = position.coords.latitude;
+                    var longitude = position.coords.longitude;
+
+                    // Lakukan permintaan HTTP GET dengan parameter lokasi ke server Python
+                    axios.get("/get_air_quality", {
+                        params: {
+                            latitude: latitude,
+                            longitude: longitude
+                        }
+                    })
+                    .then(function (response) {
+                        // Tampilkan data di halaman web
+                        displayData(response.data);
+                    })
+                    .catch(function (error) {
+                        console.error('Gagal mengirim permintaan ke server:', error);
+                    });
+                });
+            }
+        });
+
+        // ...
+
+function displayData(data) {
+            if (data.status === "success") {
+                // Data polusi
+                var pollutionCard = document.getElementById("pollutionCard");
+                pollutionCard.style.display = "block"; // Tampilkan card
+
+                document.getElementById("aqiValue").textContent = data.data.current.pollution.aqius;
+                document.getElementById("mainParameter").textContent = data.data.current.pollution.mainus;
+
+                // Data cuaca
+                var weatherCard = document.getElementById("weatherCard");
+                weatherCard.style.display = "block"; // Tampilkan card
+
+                document.getElementById("temperature").textContent = data.data.current.weather.tp;
+                document.getElementById("humidity").textContent = data.data.current.weather.hu;
+                document.getElementById("windDirection").textContent = data.data.current.weather.wd;
+                document.getElementById("windSpeed").textContent = data.data.current.weather.ws;
+
+                // Informasi lokasi
+                var locationCard = document.getElementById("locationCard");
+                locationCard.style.display = "block"; // Tampilkan card
+
+                document.getElementById("city").textContent = data.data.city;
+                document.getElementById("country").textContent = data.data.country;
+                document.getElementById("state").textContent = data.data.state;
+            }
+        }
+
+        // Tampilkan data (simulasi)
+        displayData(data);
+    </script>
+</body>
+</html>
